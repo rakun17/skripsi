@@ -12,7 +12,7 @@
 
     <div class="card">
         <div class="card-header">
-        <span wire:click="create" class="btn btn-sm btn-primary">Tambah</span>
+        {{-- <span wire:click="create" class="btn btn-sm btn-primary">Tambah</span> --}}
 
             <div class="card-tools">
                 <div class="input-group input-group-sm" style="width: 150px;">
@@ -34,15 +34,16 @@
                 <tr>
                     <th width="10%">No</th>
                     <th>Kode Pinjam</th>
+                    <th>Peminjam</th>
                     <th>Buku</th>
                     <th>Lokasi</th>
                     <th>Tanggal Pinjam</th>
                     <th>Tanggal Kembali</th>
                     <th>Denda</th>
                     <th>Status</th>
-                   @if (!$selesai_dipinjam)
+                   {{-- @if (!$selesai_dipinjam) --}}
                         <th width="15%">Aksi</th>
-                   @endif
+                   {{-- @endif --}}
                 </tr>
                 </thead>
                 <tbody>
@@ -50,6 +51,7 @@
                     <tr>
                         <td>{{$loop->iteration}}</td>
                         <td>{{$item->kode_pinjam}}</td>
+                        <td>{{$item->user?->name}}</td>
                         <td>
                             <ul>
                                 @foreach ($item->detail_peminjaman as $detail_peminjaman)

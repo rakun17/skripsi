@@ -6,6 +6,7 @@ use App\Models\Buku as ModelsBuku;
 use App\Models\DetailPeminjaman;
 use App\Models\Kategori;
 use App\Models\Peminjaman;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
@@ -45,10 +46,10 @@ class Buku extends Component
     {
         // user harus login
         if (auth()->user()) {
-            
+
             // role peminjam
             if (auth()->user()->hasRole('peminjam')) {
-               
+
                 $peminjaman_lama = DB::table('peminjaman')
                     ->join('detail_peminjaman', 'peminjaman.id', '=', 'detail_peminjaman.peminjaman_id')
                     ->where('peminjam_id', auth()->user()->id)
@@ -103,7 +104,7 @@ class Buku extends Component
             session()->flash('gagal', 'Anda harus login terlebih dahulu');
             redirect('/login');
         }
-        
+
     }
 
     public function updatingSearch()
@@ -115,7 +116,11 @@ class Buku extends Component
     {
         if ($this->pilih_kategori) {
             if ($this->search) {
-                $buku = ModelsBuku::latest()->where('judul', 'like', '%'. $this->search .'%')->where('kategori_id', $this->kategori_id)->paginate(12);
+                $buku = ModelsBuku::latest()->where(function(Builder $q) {
+                    return $q->where('judul', 'like', '%'. $this->search .'%')->orWhere('penulis', 'like', "%{$this->search}%")->orWhereHas('penerbit', function(Builder $qPenerbit) {
+                        return $qPenerbit->where('nama', 'like', "%{$this->search}%");
+                    });
+                })->where('kategori_id', $this->kategori_id)->paginate(12);
             } else {
                 $buku = ModelsBuku::latest()->where('kategori_id', $this->kategori_id)->paginate(12);
             }
@@ -125,13 +130,19 @@ class Buku extends Component
             $title = 'Detail Buku';
         } else {
             if ($this->search) {
-                $buku = ModelsBuku::latest()->where('judul', 'like', '%'. $this->search .'%')->paginate(12);
+                $buku = ModelsBuku::latest()->where(function(Builder $q) {
+                    return $q->where('judul', 'like', '%'. $this->search .'%')->orWhere('penulis', 'like', "%{$this->search}%")->orWhereHas('penerbit', function(Builder $qPenerbit) {
+                        return $qPenerbit->where('nama', 'like', "%{$this->search}%");
+                    })->orWhereHas('kategori', function(Builder $qkategori) {
+                        return $qkategori->where('nama', 'like', "%{$this->search}%");
+                    });
+                })->paginate(12);
             } else {
                 $buku = ModelsBuku::latest()->paginate(12);
             }
             $title = 'Semua Buku';
         }
-        
+
         return view('livewire.peminjam.buku', compact('buku', 'title'));
     }
 
